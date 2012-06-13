@@ -1,4 +1,7 @@
 package Message::Passing::Output::MongoDB;
+
+# ABSTRACT: Module for Message::Passing to send log to mongodb
+
 use Moose;
 use MongoDB;
 use AnyEvent;
@@ -8,8 +11,6 @@ use Moose::Util::TypeConstraints;
 use Try::Tiny qw/ try catch /;
 use aliased 'DateTime' => 'DT';
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
-use MooseX::Types::DateTime qw/ DateTime /;
-use JSON qw/ encode_json /;
 use Data::Dumper;
 use namespace::autoclean;
 
@@ -40,11 +41,6 @@ has _db => (
             $connection->authenticate($database, $self->user, $self->password)
             or die "MongoDB authentication failure";
         }
-        if (defined $self->indexes) {
-            foreach my $indexe (@{$self->indexes}){
-               $connection->ensure_index($indexe);
-            }
-        }
 
         return $connection->get_database($self->database);
     },
@@ -66,7 +62,16 @@ has _collection => (
 sub _build_logs_collection {
     my ($self) = @_;
     my $collection_name = $self->collection;
-    return $self->_db->$collection_name;
+    my $collection = $self->_db->$collection_name;
+    
+    if (defined $self->indexes) {
+        foreach my $index (@{$self->indexes}){
+            my $result = $collection->ensure_index(@$index);
+            warn("ensure index " . Dumper($result)) if $self->verbose;
+        }
+    }
+
+    return $collection;
 }
 
 has host => (
@@ -112,32 +117,9 @@ sub consume {
     my ($self, $data) = @_;
      return unless $data;
     my $date;
-    if (my $epochtime = delete($data->{epochtime})) {
-        $date = DT->from_epoch(epoch => $epochtime);
-        delete($data->{date});
-    }
-    elsif (my $try_date = delete($data->{date})) {
-        if (is_ISO8601DateTimeStr($try_date)) {
-            $date = to_DateTime($try_date);
-        }
-    }
-    $date ||= DT->from_epoch(epoch => time());
-    my $type = $data->{__CLASS__} || 'unknown';
-    my $record = {
-        type => $type,
-        data => {
-            '@timestamp' => to_ISO8601DateTimeStr($date),
-            '@tags' => [],
-            '@type' => $type,
-            '@source_host' => delete($data->{hostname}) || 'none',
-            '@message' => exists($data->{message}) ? delete($data->{message}) : encode_json($data),
-            '@fields' => $data,
-        },
-        exists($data->{uuid}) ? ( id => delete($data->{uuid}) ) : (),
-    };
     my $collection = $self->_collection;
-    $collection->insert($record)
-        or warn "Insertion failure: " . Dumper($record) . "\n";
+    $collection->insert($data)
+        or warn "Insertion failure: " . Dumper($data) . "\n";
     if ($self->verbose) {
         $self->_inc_log_counter;
         warn("Total " . $self->_log_counter . " records inserted in MongoDB\n");
@@ -145,7 +127,7 @@ sub consume {
 }
 
 has indexes => (
-    isa => ArrayRef[HashRef],
+    isa => ArrayRef[ArrayRef[HashRef]],
     is => 'ro',
 );
 
@@ -171,10 +153,95 @@ has _cleaner => (
             cb => sub { 
                 my $result = $self->_collection->remove(
                     { date => { '$lt' => to_ISO8601DateTimeStr($retention_date) } } );
-                warn("Cleaned old log " . Dumper($result) . "\n") if $self->verbose;
+                warn("Cleaned old log failure\n") if !$result;
+                warn("Cleaned old log \n") if $self->verbose;
             },
         );
     },
 );
 
 1;
+
+=head1 NAME
+
+Message::Passing::Output::MongoDB - MongoDB output
+
+=head1 SYNOPSIS
+
+    message-pass --input STDIN --output MongoDB --output_options '{"host": "localhost", "database":"log_database", "collection":"logs"}'
+    {"foo":"bar"}
+
+=head1 DESCRIPTION
+
+Output messages to File
+
+=head1 METHODS
+
+=head2 consume
+
+Consumes a message by JSON encoding it save it in MongoDB
+
+=head1 ATTRIBUTES
+
+=head2 host
+
+Required, Str, your mongodb host
+
+=head2 database
+
+Required, Str, the database to use.
+
+=head2 collection
+
+Required, Str, the collection to use.
+
+=head2 port
+
+Num, the mongodb port, default is 27017
+
+=head2 user
+
+Str, mongodb authentication user
+
+=head2 password
+
+Str, mongodb authentication password
+
+=head2 indexes
+
+ArrayRef[ArrayRef[HashRef]], mongodb indexes
+
+    ...
+    indexes => [
+        [{"foo" => 1, "bar" => -1}, { unique => true }],
+        [{"foo" => 1}],
+    ]
+    ...
+
+=head2 retention
+
+Int, time in seconds to conserver logs, set 0 to keep it permanent, default is
+a week
+
+=head2 verbose
+
+Boolean, verbose
+
+=head1 SEE ALSO
+
+L<Message::Passing>
+
+=head1 SPONSORSHIP
+
+This module exists due to the wonderful people at Suretec Systems Ltd.
+<http://www.suretecsystems.com/> who sponsored its development for its
+VoIP division called SureVoIP <http://www.surevoip.co.uk/> for use with
+the SureVoIP API - 
+<http://www.surevoip.co.uk/support/wiki/api_documentation>
+
+=head1 AUTHOR, COPYRIGHT AND LICENSE
+
+See L<Message::Passing>.
+
+=cut
+
