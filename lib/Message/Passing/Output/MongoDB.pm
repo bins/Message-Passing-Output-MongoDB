@@ -6,7 +6,7 @@ use Moose;
 use MongoDB;
 use AnyEvent;
 use Scalar::Util qw/ weaken /;
-use MooseX::Types::Moose qw/ ArrayRef HashRef Str Bool Int /;
+use MooseX::Types::Moose qw/ ArrayRef HashRef Str Bool Int Num /;
 use Moose::Util::TypeConstraints;
 use Try::Tiny qw/ try catch /;
 use aliased 'DateTime' => 'DT';
@@ -93,7 +93,6 @@ has user => (
 has port => (
     isa => Int,
     is => 'ro',
-    lazy => 1,
     default => 27017,
 );
 
@@ -133,15 +132,19 @@ has indexes => (
 
 has retention => (
     is => 'ro',
-    isa => Int,
-    lazy => 1,
+    isa => Num,
     default => 60 * 60 * 24 * 7, # A week
     documentation => 'Int, Time to retent log, in seconds, set 0 to always keep log',
 );
 
 has _cleaner => (
     is => 'ro',
-    default => sub {
+    isa => 'Undef|ArrayRef',
+    lazy => 1,
+    builder => '_build_cleaner'
+);
+
+sub _build_cleaner {
         my $self = shift;
         weaken($self);
         return if $self->retention == 0;
@@ -157,8 +160,11 @@ has _cleaner => (
                 warn("Cleaned old log \n") if $self->verbose;
             },
         );
-    },
-);
+    }
+
+sub BUILD{
+    shift->_cleaner;
+}
 
 1;
 
