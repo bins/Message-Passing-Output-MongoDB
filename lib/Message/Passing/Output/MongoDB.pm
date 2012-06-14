@@ -66,8 +66,8 @@ sub _build_logs_collection {
     
     if (defined $self->indexes) {
         foreach my $index (@{$self->indexes}){
-            my $result = $collection->ensure_index(@$index);
-            warn("ensure index " . Dumper($result)) if $self->verbose;
+            $collection->ensure_index(@$index);
+            warn("ensure index " . Dumper($index)) if $self->verbose;
         }
     }
 
