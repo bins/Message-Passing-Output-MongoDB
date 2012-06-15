@@ -69,14 +69,14 @@ has _collection => (
     isa      => 'MongoDB::Collection',
     lazy     => 1,
     builder  => '_build_logs_collection',
-);  
+);
 
 sub _build_logs_collection {
     my ($self) = @_;
     my $collection_name = $self->collection;
     my $collection = $self->_db->$collection_name;
-    
-    if (defined $self->indexes) {
+
+    if ($self->_has_indexes) {
         foreach my $index (@{$self->indexes}){
             $collection->ensure_index(@$index);
             warn("ensure index " . Dumper($index)) if $self->verbose;
@@ -120,6 +120,7 @@ sub consume {
 has indexes => (
     isa => ArrayRef[ArrayRef[HashRef]],
     is => 'ro',
+    predicate => '_has_indexes',
 );
 
 has retention => (
@@ -131,31 +132,31 @@ has retention => (
 
 has _cleaner => (
     is => 'ro',
-    isa => 'Undef|ArrayRef',
     lazy => 1,
     builder => '_build_cleaner'
 );
 
 sub _build_cleaner {
-        my $self = shift;
-        weaken($self);
-        return if $self->retention == 0;
-        my $time = 60 * 60 * 24; # Every day
-        my $retention_date = DT->from_epoch(epoch => time() - $self->retention );
-        AnyEvent->timer(
-            after => 100,
-            interval => $time,
-            cb => sub { 
-                my $result = $self->_collection->remove(
-                    { date => { '$lt' => to_ISO8601DateTimeStr($retention_date) } } );
-                warn("Cleaned old log failure\n") if !$result;
-                warn("Cleaned old log \n") if $self->verbose;
-            },
-        );
-    }
+    my $self = shift;
+    weaken($self);
+    my $time = 60 * 60 * 24; # Every day
+    my $retention_date = DT->from_epoch(epoch => time() - $self->retention );
+    AnyEvent->timer(
+        after => 100,
+        interval => $time,
+        cb => sub {
+            my $result = $self->_collection->remove(
+                { date => { '$lt' => to_ISO8601DateTimeStr($retention_date) } } );
+            warn("Cleaned old log failure\n") if !$result;
+            warn("Cleaned old log \n") if $self->verbose;
+        },
+    );
+}
 
-sub BUILD{
-    shift->_cleaner;
+sub BUILD {
+    my ($self) = @_;
+    $self->_cleaner
+        if $self->retention != 0;
 }
 
 1;
