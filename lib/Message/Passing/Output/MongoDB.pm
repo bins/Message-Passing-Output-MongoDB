@@ -23,6 +23,14 @@ with qw/
     Message::Passing::Role::HasHostnameAndPort
 /;
 
+has '+password' => (
+    required => 0,
+);
+
+has '+username' => (
+    required => 0,
+);
+
 has database => (
     isa => Str,
     is => 'ro',

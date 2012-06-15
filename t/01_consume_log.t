@@ -14,7 +14,7 @@ BEGIN {
 }
 
 my $output = Message::Passing::Output::MongoDB->new(
-    host => "localhost",
+    hostname => "localhost",
     database => "log_stash_test",
     collection => "logs",
     indexes => [
