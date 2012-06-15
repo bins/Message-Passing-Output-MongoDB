@@ -1,25 +1,17 @@
 use strict;
 use warnings;
-use Test::More;
-
-# use Message::Passing::Output::MongoDB;
+use Test::More 0.88;
+use Try::Tiny;
 use MongoDB;
-use Weborama::Standard version => 1, data_printer => { alias => 'dp' };
 
 BEGIN {
-    eval{
+    try {
         MongoDB::Connection->new(host => 'localhost', port => '27017');
+    } catch {
+        plan skip_all => $_;
     };
-    if ($@) {
-        plan skip_all => $@;
-    }
-    else {
-        plan tests => 3;
-    }
+    use_ok('Message::Passing::Output::MongoDB');
 }
-
-
-use_ok('Message::Passing::Output::MongoDB');
 
 my $output = Message::Passing::Output::MongoDB->new(
     host => "localhost",
@@ -48,3 +40,6 @@ ok $indexes[1]->{key}->{foo}, "Found indexes OK";
 
 $collection->drop;
 $database->drop;
+
+done_testing;
+
