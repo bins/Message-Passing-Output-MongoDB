@@ -8,7 +8,6 @@ use AnyEvent;
 use Scalar::Util qw/ weaken /;
 use MooseX::Types::Moose qw/ ArrayRef HashRef Str Bool Int Num /;
 use Moose::Util::TypeConstraints;
-use Try::Tiny qw/ try catch /;
 use aliased 'DateTime' => 'DT';
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use Data::Dumper;

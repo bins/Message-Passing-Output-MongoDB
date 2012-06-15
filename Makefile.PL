@@ -12,6 +12,10 @@ requires 'Message::Passing' => '0.009';
 requires 'MongoDB';
 requires 'Moose';
 requires 'MooseX::Types';
+requires 'AnyEvent';
+requires 'MooseX::Types::ISO8601';
+requires 'aliased';
+requires 'namespace::autoclean';
 test_requires 'Try::Tiny';
 
 author_requires(
