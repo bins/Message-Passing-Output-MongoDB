@@ -2,51 +2,53 @@ NAME
     Message::Passing::Output::MongoDB - MongoDB output
 
 SYNOPSIS
-        message-pass --input STDIN --output MongoDB --output_options '{"hostname": "localhost", "database":"log_database", "collection":"logs"}'
+        message-pass --input STDIN 
+          --output MongoDB --output_options '{"hostname": "localhost", "database":"log_database", "collection":"logs"}'
+    
         {"foo":"bar"}
 
 DESCRIPTION
-    Output messages to File
+    Output messages to MongoDB
 
 METHODS
-  consume
-    Consumes a message by JSON encoding it save it in MongoDB
+    consume
+        Consumes a message by JSON encoding it save it in MongoDB
 
 ATTRIBUTES
-  hostname
-    Required, Str, your mongodb host
+    hostname
+        Required, Str, your mongodb host
 
-  database
-    Required, Str, the database to use.
+    database
+        Required, Str, the database to use.
 
-  collection
-    Required, Str, the collection to use.
+    collection
+        Required, Str, the collection to use.
 
-  port
-    Num, the mongodb port, default is 27017
+    port
+        Num, the mongodb port, default is 27017
 
-  username
-    Str, mongodb authentication user
+    username
+        Str, mongodb authentication user
 
-  password
-    Str, mongodb authentication password
+    password
+        Str, mongodb authentication password
 
-  indexes
-    ArrayRef[ArrayRef[HashRef]], mongodb indexes
+    indexes
+        ArrayRef[ArrayRef[HashRef]], mongodb indexes
 
-        ...
-        indexes => [
-            [{"foo" => 1, "bar" => -1}, { unique => true }],
-            [{"foo" => 1}],
-        ]
-        ...
+            ...
+            indexes => [
+                [{"foo" => 1, "bar" => -1}, { unique => true }],
+                [{"foo" => 1}],
+            ]
+            ...
 
-  retention
-    Int, time in seconds to conserver logs, set 0 to keep it permanent,
-    default is a week
+    retention
+        Int, time in seconds to conserver logs, set 0 to keep it permanent,
+        default is a week
 
-  verbose
-    Boolean, verbose
+    verbose
+        Boolean, verbose
 
 SEE ALSO
     Message::Passing

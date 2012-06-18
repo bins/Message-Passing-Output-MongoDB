@@ -2,6 +2,7 @@ use inc::Module::Install;
 use Module::Install::AuthorRequires;
 use Module::Install::AuthorTests;
 
+license 'perl';
 all_from 'lib/Message/Passing/Output/MongoDB.pm';
 
 resources(

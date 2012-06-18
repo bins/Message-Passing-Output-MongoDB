@@ -13,7 +13,7 @@ use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use Data::Dumper;
 use namespace::autoclean;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 $VERSION = eval $VERSION;
 
 with qw/
@@ -166,46 +166,54 @@ Message::Passing::Output::MongoDB - MongoDB output
 
 =head1 SYNOPSIS
 
-    message-pass --input STDIN --output MongoDB --output_options '{"hostname": "localhost", "database":"log_database", "collection":"logs"}'
+    message-pass --input STDIN 
+      --output MongoDB --output_options '{"hostname": "localhost", "database":"log_database", "collection":"logs"}'
+    
     {"foo":"bar"}
 
 =head1 DESCRIPTION
 
-Output messages to File
+Output messages to MongoDB
 
 =head1 METHODS
 
-=head2 consume
+=over
+
+=item consume
 
 Consumes a message by JSON encoding it save it in MongoDB
 
+=back
+
 =head1 ATTRIBUTES
 
-=head2 hostname
+=over
+
+=item hostname
 
 Required, Str, your mongodb host
 
-=head2 database
+=item database
 
 Required, Str, the database to use.
 
-=head2 collection
+=item collection
 
 Required, Str, the collection to use.
 
-=head2 port
+=item port
 
 Num, the mongodb port, default is 27017
 
-=head2 username
+=item username
 
 Str, mongodb authentication user
 
-=head2 password
+=item password
 
 Str, mongodb authentication password
 
-=head2 indexes
+=item indexes
 
 ArrayRef[ArrayRef[HashRef]], mongodb indexes
 
@@ -216,14 +224,16 @@ ArrayRef[ArrayRef[HashRef]], mongodb indexes
     ]
     ...
 
-=head2 retention
+=item retention
 
 Int, time in seconds to conserver logs, set 0 to keep it permanent, default is
 a week
 
-=head2 verbose
+=item verbose
 
 Boolean, verbose
+
+=back
 
 =head1 SEE ALSO
 
