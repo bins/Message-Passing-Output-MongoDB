@@ -11,9 +11,10 @@ use Moose::Util::TypeConstraints;
 use aliased 'DateTime' => 'DT';
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use Data::Dumper;
+use Tie::IxHash;
 use namespace::autoclean;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 $VERSION = eval $VERSION;
 
 with qw/
@@ -129,32 +130,62 @@ has retention => (
     documentation => 'Int, Time to retent log, in seconds, set 0 to always keep log',
 );
 
-has _cleaner => (
+has collect_fields => (
+    isa => 'Bool',
     is => 'ro',
-    lazy => 1,
-    builder => '_build_cleaner'
+    default => 0,
 );
 
-sub _build_cleaner {
+has _observer => (
+    is => 'ro',
+    lazy => 1,
+    builder => '_build_observer'
+);
+
+sub _build_observer {
     my $self = shift;
     weaken($self);
     my $time = 60 * 60 * 24; # Every day
     my $retention_date = DT->from_epoch(epoch => time() - $self->retention );
     AnyEvent->timer(
-        after => 100,
+        after => 30,
         interval => $time,
         cb => sub {
             my $result = $self->_collection->remove(
                 { date => { '$lt' => to_ISO8601DateTimeStr($retention_date) } } );
             warn("Cleaned old log failure\n") if !$result;
             warn("Cleaned old log \n") if $self->verbose;
-        },
+            if ($self->collect_fields){
+                eval { 
+                    my $map = <<"MAP";
+function() {
+    for (var key in this) { emit(key, null); }
+}
+MAP
+
+                    my $reduce = <<"REDUCE";
+ function(key, stuff) { return null; }
+REDUCE
+
+                    my $cmd = Tie::IxHash->new(
+                        "mapreduce" => $self->collection,
+                        "map"       => $map,
+                        "reduce"    => $reduce,
+                        "out"       => $self->collection.'_keys'
+                    );
+
+                    my $indexing_result = $self->_db->run_command($cmd);
+                    warn($indexing_result) if defined $indexing_result;
+                };
+                warn "Indexing fields failure : ".Dumper($@) if $@;
+            }
+        }
     );
 }
 
 sub BUILD {
     my ($self) = @_;
-    $self->_cleaner
+    $self->_observer
         if $self->retention != 0;
 }
 
@@ -162,7 +193,7 @@ sub BUILD {
 
 =head1 NAME
 
-Message::Passing::Output::MongoDB - MongoDB output
+Message::Passing::Output::MongoDB - message-passing out put to MongoDB
 
 =head1 SYNOPSIS
 
@@ -173,7 +204,7 @@ Message::Passing::Output::MongoDB - MongoDB output
 
 =head1 DESCRIPTION
 
-Output messages to MongoDB
+Module for L<Message::Passing>, send output to MongoDB
 
 =head1 METHODS
 
@@ -223,6 +254,11 @@ ArrayRef[ArrayRef[HashRef]], mongodb indexes
         [{"foo" => 1}],
     ]
     ...
+
+=item collect_fields
+
+Bool, default to 0, set to 1 to collect the fields' key and inserted in collection
+$self->collection . "_keys", execution at the starting and once per day.
 
 =item retention
 

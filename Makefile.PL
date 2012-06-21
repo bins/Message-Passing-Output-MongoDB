@@ -15,6 +15,7 @@ requires 'Moose';
 requires 'MooseX::Types';
 requires 'AnyEvent';
 requires 'MooseX::Types::ISO8601';
+requires 'Tie::IxHash';
 requires 'aliased';
 requires 'namespace::autoclean';
 test_requires 'Try::Tiny';

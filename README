@@ -1,5 +1,5 @@
 NAME
-    Message::Passing::Output::MongoDB - MongoDB output
+    Message::Passing::Output::MongoDB - message-passing out put to MongoDB
 
 SYNOPSIS
         message-pass --input STDIN 
@@ -8,7 +8,7 @@ SYNOPSIS
         {"foo":"bar"}
 
 DESCRIPTION
-    Output messages to MongoDB
+    Module for Message::Passing, send output to MongoDB
 
 METHODS
     consume
@@ -42,6 +42,11 @@ ATTRIBUTES
                 [{"foo" => 1}],
             ]
             ...
+
+    collect_fields
+        Bool, default to 0, set to 1 to collect the fields' key and inserted
+        in collection $self->collection . "_keys", execution at the starting
+        and once per day.
 
     retention
         Int, time in seconds to conserver logs, set 0 to keep it permanent,
