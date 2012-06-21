@@ -175,7 +175,8 @@ REDUCE
                     );
 
                     my $indexing_result = $self->_db->run_command($cmd);
-                    warn($indexing_result) if defined $indexing_result;
+                    warn(Dumper($indexing_result)) if $self->verbose;
+                    warn(Dumper $indexing_result)) if ref $indexing_result ne "HASH";
                 };
                 warn "Indexing fields failure : ".Dumper($@) if $@;
             }
