@@ -14,23 +14,26 @@ BEGIN {
 }
 
 my $output = Message::Passing::Output::MongoDB->new(
-    hostname => "localhost",
+    connection_options => {
+        host => 'localhost:27017',
+    },
     database => "log_stash_test",
     collection => "logs",
     indexes => [
         [{foo => 1}]
     ],
-    retention => 0,
+    retention => 7,
     verbose => 0,
 );
 
-$output->consume({foo => "bar"});
+$output->consume({foo => "bar", epochtime => time});
 
-# Wait 1 seconds to wait output consume
-sleep 1;
+$output->_flush;
+
 my $connection = MongoDB::Connection->new(host => 'localhost', port => 27017);
 my $database   = $connection->get_database('log_stash_test');
-my $collection = $database->logs;
+my $collection_name = 'logs_'. DateTime->now->strftime('%Y%m%d');
+my $collection = $database->$collection_name;
 
 is $collection->find_one({ foo => "bar" })->{foo}, "bar", "Found inserted log OK";
 

@@ -4,7 +4,6 @@ use Test::More;
 use Test::Spelling;
 
 add_stopwords(qw(
-    hostname
     username
     namespace
     POSIX
