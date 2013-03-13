@@ -307,9 +307,9 @@ Required, Str, the database to use.
 
 Required, Str, the collection to use.
 
-=item port
+=item connection_options
 
-Num, the mongodb port, default is 27017
+HashRef, takes any options as MongoDB::Connection->new(\%options) do
 
 =item username
 
