@@ -3,7 +3,7 @@ NAME
 
 SYNOPSIS
         message-pass --input STDIN 
-          --output MongoDB --output_options '{"hostname": "localhost", "database":"log_database", "collection":"logs"}'
+          --output MongoDB --output_options '{ "database":"log_database", "collection":"logs"}'
     
         {"foo":"bar"}
 
@@ -15,17 +15,14 @@ METHODS
         Consumes a message by JSON encoding it save it in MongoDB
 
 ATTRIBUTES
-    hostname
-        Required, Str, your mongodb host
-
     database
         Required, Str, the database to use.
 
     collection
         Required, Str, the collection to use.
 
-    port
-        Num, the mongodb port, default is 27017
+    connection_options
+        HashRef, takes any options as MongoDB::Connection->new(\%options) do
 
     username
         Str, mongodb authentication user

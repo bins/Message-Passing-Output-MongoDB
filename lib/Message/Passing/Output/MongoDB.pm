@@ -81,7 +81,7 @@ sub _build_collection_of_day {
     my $dt = DateTime->now;
     my $collection_name_by_date = $self->collection .'_'. $dt->strftime('%Y%m%d');
 
-    return $self->_db->$collection_name_by_date;
+    return $self->_db->get_collection($collection_name_by_date);
 }
 
 sub _ensure_collection_indexes {
@@ -110,7 +110,7 @@ sub _get_collection_by_date {
     # a new collection 
     if (!defined $self->_collection_of_day_name || $self->_collection_of_day_name ne $collection_name_by_date) {
         $self->_flush;
-        my $collection_by_date = $self->_db->$collection_name_by_date;
+        my $collection_by_date = $self->_db->get_collection($collection_name_by_date);
         $self->_ensure_collection_indexes($collection_by_date);
         $self->_collection_of_day 
             and $self->_remove_expired_collection();
@@ -127,7 +127,7 @@ sub _remove_expired_collection{
     my $retention_date = DT->now()->subtract(days => $self->retention );
     my $expired_collection_name = $self->collection .'_'. $retention_date->strftime('%Y%m%d');
 
-    $self->_db->$expired_collection_name->drop; 
+    $self->_db->get_collection($expired_collection_name)->drop; 
 }
 
 sub _default_port { 27017 }

@@ -3,6 +3,7 @@ use Module::Install::AuthorRequires;
 use Module::Install::AuthorTests;
 
 license 'perl';
+name 'Message-Passing-Output-MongoDB';
 all_from 'lib/Message/Passing/Output/MongoDB.pm';
 
 resources(
