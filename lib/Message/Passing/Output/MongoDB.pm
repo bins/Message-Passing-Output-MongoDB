@@ -14,7 +14,7 @@ use Data::Dumper;
 use Tie::IxHash;
 use namespace::autoclean;
 
-our $VERSION = '0.01';
+our $VERSION = '0.04';
 $VERSION = eval $VERSION;
 
 with qw/
@@ -42,15 +42,25 @@ has database => (
     required => 1,
 );
 
+has _connection  => (
+    is  => 'ro',
+    isa => 'MongoDB::Connection',
+    lazy => 1,
+    default => sub {
+        my $self = shift;
+        MongoDB::Connection->new( 
+            $self->connection_options
+        );
+    },
+);
+
 has _db => (
     is => 'ro',
     isa => 'MongoDB::Database',
     lazy => 1,
     default => sub {
         my $self = shift;
-        my $connection = MongoDB::Connection->new( 
-            $self->connection_options
-        );
+        my $connection = $self->_connection;
 
         my $database = $self->database;
         if (defined $self->username) {
@@ -186,10 +196,16 @@ sub _flush {
     return if $self->_am_flushing;
     my $queue = $self->queue;
     return unless scalar @$queue;
-    $self->_clear_queue;
     $self->_am_flushing(1);
 
-    $self->_collection_of_day->batch_insert($queue);
+    eval {
+        $self->_collection_of_day->batch_insert($queue);
+        1;
+    } or do {
+        $self->_conection->connect;
+        warn("Failed to do the insertion of logs. \n");
+    };
+    $self->_clear_queue;
     $self->_am_flushing(0);
 }
 
