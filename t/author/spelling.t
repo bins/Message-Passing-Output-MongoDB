@@ -40,6 +40,10 @@ add_stopwords(qw(
     STDOUT
     STDERR
     logstash
+    MongoDB
+    mongodb
+    conserver
+    Str
 ));
 set_spell_cmd('aspell list -l en');
 all_pod_files_spelling_ok();

@@ -33,7 +33,7 @@ $output->_flush;
 my $connection = MongoDB::Connection->new(host => 'localhost', port => 27017);
 my $database   = $connection->get_database('log_stash_test');
 my $collection_name = 'logs_'. DateTime->now->strftime('%Y%m%d');
-my $collection = $database->$collection_name;
+my $collection = $database->get_collection($collection_name);
 
 is $collection->find_one({ foo => "bar" })->{foo}, "bar", "Found inserted log OK";
 
