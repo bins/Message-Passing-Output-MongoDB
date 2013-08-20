@@ -9,7 +9,9 @@ all_from 'lib/Message/Passing/Output/MongoDB.pm';
 resources(
     repository => "git://github.com/bins/Message-Passing-Output-MongoDB.git",
 );
-
+requires 'indirect';
+requires 'multidimensional';
+requires 'bareword::filehandles';
 requires 'Message::Passing' => '0.009';
 requires 'MongoDB';
 requires 'Moose';
