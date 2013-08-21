@@ -41,6 +41,18 @@ my @indexes = $collection->get_indexes;
 
 ok $indexes[1]->{key}->{foo}, "Found indexes OK";
 
+# Test bad log insertion
+$output->consume({'A bad log.'=>undef});
+
+$output->_flush;
+
+# Test the connection 
+$output->consume({toto => "foo1", epochtime => time});
+
+$output->_flush;
+
+is $collection->find_one({ toto => "foo1" })->{toto}, "foo1", "Found new inserted log OK";
+
 $collection->drop;
 $database->drop;
 
