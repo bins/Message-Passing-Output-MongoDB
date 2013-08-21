@@ -202,7 +202,7 @@ sub _flush {
         $self->_collection_of_day->batch_insert($queue);
         1;
     } or do {
-        $self->_conection->connect;
+        $self->_connection->connect;
         warn("Failed to do the insertion of logs. \n");
     };
     $self->_clear_queue;
