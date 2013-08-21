@@ -14,7 +14,7 @@ use Data::Dumper;
 use Tie::IxHash;
 use namespace::autoclean;
 
-our $VERSION = '0.051';
+our $VERSION = '0.052';
 $VERSION = eval $VERSION;
 
 with qw/
