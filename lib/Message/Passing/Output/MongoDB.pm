@@ -42,13 +42,13 @@ has database => (
     required => 1,
 );
 
-has _connection  => (
+has _client  => (
     is  => 'ro',
-    isa => 'MongoDB::Connection',
+    isa => 'MongoDB::MongoClient',
     lazy => 1,
     default => sub {
         my $self = shift;
-        MongoDB::Connection->new( 
+        MongoDB::MongoClient->new( 
             $self->connection_options
         );
     },
@@ -60,15 +60,15 @@ has _db => (
     lazy => 1,
     default => sub {
         my $self = shift;
-        my $connection = $self->_connection;
+        my $client = $self->_client;
 
         my $database = $self->database;
         if (defined $self->username) {
-            $connection->authenticate($database, $self->username, $self->password)
+            $client->authenticate($database, $self->username, $self->password)
             or die "MongoDB authentication failure";
         }
 
-        return $connection->get_database($self->database);
+        return $client->get_database($self->database);
     },
 );
 
@@ -202,7 +202,7 @@ sub _flush {
         $self->_collection_of_day->batch_insert($queue);
         1;
     } or do {
-        $self->_connection->connect;
+        $self->_client->connect();
         warn("Failed to do the insertion of logs. \n");
     };
     $self->_clear_queue;
@@ -325,7 +325,7 @@ Required, Str, the collection to use.
 
 =item connection_options
 
-HashRef, takes any options as MongoDB::Connection->new(\%options) do
+HashRef, takes any options as MongoDB::MongoClient->new(\%options) do
 
 =item username
 
