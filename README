@@ -22,7 +22,8 @@ ATTRIBUTES
         Required, Str, the collection to use.
 
     connection_options
-        HashRef, takes any options as MongoDB::Connection->new(\%options) do
+        HashRef, takes any options as MongoDB::MongoClient->new(\%options)
+        do
 
     username
         Str, mongodb authentication user
