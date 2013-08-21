@@ -1,3 +1,6 @@
+0.051
+    * Fix typo
+
 0.05
     * Fix tests
     * Fix memory leak and lost connection issue
