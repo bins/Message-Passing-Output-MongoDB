@@ -146,6 +146,7 @@ has _log_counter => (
     traits  => ['Counter'],
     is => 'rw',
     isa => Int,
+    lazy => 1,
     default => sub {0},
     handles => { _inc_log_counter => 'inc', },
 );
@@ -203,7 +204,7 @@ sub _flush {
         1;
     } or do {
         $self->_client->connect();
-        warn("Failed to do the insertion of logs. \n");
+        warn("Failed to do the insertion of logs, errors were '$@'. \n");
     };
     $self->_clear_queue;
     $self->_am_flushing(0);
